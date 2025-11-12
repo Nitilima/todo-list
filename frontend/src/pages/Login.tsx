@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { LogIn } from 'lucide-react';
 
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -27,7 +32,7 @@ const Login = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 

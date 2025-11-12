@@ -1,48 +1,50 @@
-const prisma = require('../config/prisma');
-const { validationResult } = require('express-validator');
+import { Response } from 'express';
+import prisma from '../config/prisma';
+import { validationResult } from 'express-validator';
+import { AuthRequest, TaskStatus, TaskPriority, PrismaTaskStatus, PrismaTaskPriority } from '../types';
 
 // Helper function to convert API status to Prisma enum
-const convertStatus = (status) => {
-  const statusMap = {
+const convertStatus = (status: TaskStatus): PrismaTaskStatus => {
+  const statusMap: Record<TaskStatus, PrismaTaskStatus> = {
     'pending': 'PENDING',
     'in_progress': 'IN_PROGRESS',
     'completed': 'COMPLETED'
   };
-  return statusMap[status] || status;
+  return statusMap[status];
 };
 
 // Helper function to convert Prisma enum to API status
-const convertStatusFromDb = (status) => {
-  const statusMap = {
+const convertStatusFromDb = (status: PrismaTaskStatus): TaskStatus => {
+  const statusMap: Record<PrismaTaskStatus, TaskStatus> = {
     'PENDING': 'pending',
     'IN_PROGRESS': 'in_progress',
     'COMPLETED': 'completed'
   };
-  return statusMap[status] || status;
+  return statusMap[status];
 };
 
 // Helper function to convert priority
-const convertPriority = (priority) => {
-  const priorityMap = {
+const convertPriority = (priority: TaskPriority): PrismaTaskPriority => {
+  const priorityMap: Record<TaskPriority, PrismaTaskPriority> = {
     'low': 'LOW',
     'medium': 'MEDIUM',
     'high': 'HIGH'
   };
-  return priorityMap[priority] || priority;
+  return priorityMap[priority];
 };
 
 // Helper function to convert priority from DB
-const convertPriorityFromDb = (priority) => {
-  const priorityMap = {
+const convertPriorityFromDb = (priority: PrismaTaskPriority): TaskPriority => {
+  const priorityMap: Record<PrismaTaskPriority, TaskPriority> = {
     'LOW': 'low',
     'MEDIUM': 'medium',
     'HIGH': 'high'
   };
-  return priorityMap[priority] || priority;
+  return priorityMap[priority];
 };
 
 // Helper function to convert task from DB format to API format
-const formatTask = (task) => {
+const formatTask = (task: any) => {
   if (!task) return null;
   return {
     ...task,
@@ -54,31 +56,31 @@ const formatTask = (task) => {
 // @desc    Get all tasks for current user
 // @route   GET /api/tasks
 // @access  Private
-const getTasks = async (req, res) => {
+export const getTasks = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status, priority, search, sortBy = 'createdAt', order = 'desc' } = req.query;
 
     // Build where clause
-    const where = { userId: req.userId };
+    const where: any = { userId: req.userId };
 
     if (status) {
-      where.status = convertStatus(status);
+      where.status = convertStatus(status as TaskStatus);
     }
 
     if (priority) {
-      where.priority = convertPriority(priority);
+      where.priority = convertPriority(priority as TaskPriority);
     }
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } }
       ];
     }
 
     const tasks = await prisma.task.findMany({
       where,
-      orderBy: { [sortBy]: order.toLowerCase() }
+      orderBy: { [sortBy as string]: (order as string).toLowerCase() }
     });
 
     const formattedTasks = tasks.map(formatTask);
@@ -93,7 +95,7 @@ const getTasks = async (req, res) => {
 // @desc    Get single task
 // @route   GET /api/tasks/:id
 // @access  Private
-const getTask = async (req, res) => {
+export const getTask = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const task = await prisma.task.findFirst({
       where: {
@@ -103,7 +105,8 @@ const getTask = async (req, res) => {
     });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      res.status(404).json({ message: 'Task not found' });
+      return;
     }
 
     res.json({ task: formatTask(task) });
@@ -116,16 +119,17 @@ const getTask = async (req, res) => {
 // @desc    Create new task
 // @route   POST /api/tasks
 // @access  Private
-const createTask = async (req, res) => {
+export const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const { title, description, status, priority, dueDate } = req.body;
 
-    const taskData = {
+    const taskData: any = {
       title,
       description,
       status: status ? convertStatus(status) : 'PENDING',
@@ -154,11 +158,12 @@ const createTask = async (req, res) => {
 // @desc    Update task
 // @route   PUT /api/tasks/:id
 // @access  Private
-const updateTask = async (req, res) => {
+export const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const task = await prisma.task.findFirst({
@@ -169,12 +174,13 @@ const updateTask = async (req, res) => {
     });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      res.status(404).json({ message: 'Task not found' });
+      return;
     }
 
     const { title, description, status, priority, dueDate } = req.body;
 
-    const updateData = {};
+    const updateData: any = {};
 
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
@@ -210,7 +216,7 @@ const updateTask = async (req, res) => {
 // @desc    Delete task
 // @route   DELETE /api/tasks/:id
 // @access  Private
-const deleteTask = async (req, res) => {
+export const deleteTask = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const task = await prisma.task.findFirst({
       where: {
@@ -220,7 +226,8 @@ const deleteTask = async (req, res) => {
     });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      res.status(404).json({ message: 'Task not found' });
+      return;
     }
 
     await prisma.task.delete({
@@ -237,7 +244,7 @@ const deleteTask = async (req, res) => {
 // @desc    Get task statistics
 // @route   GET /api/tasks/stats/summary
 // @access  Private
-const getTaskStats = async (req, res) => {
+export const getTaskStats = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
 
@@ -288,13 +295,4 @@ const getTaskStats = async (req, res) => {
     console.error('Get task stats error:', error);
     res.status(500).json({ message: 'Server error while fetching statistics' });
   }
-};
-
-module.exports = {
-  getTasks,
-  getTask,
-  createTask,
-  updateTask,
-  deleteTask,
-  getTaskStats
 };

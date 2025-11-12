@@ -6,15 +6,16 @@ import TaskFilters from '../components/tasks/TaskFilters';
 import { taskService } from '../services/taskService';
 import { Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Task, TaskFilters as TaskFiltersType } from '../types';
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [filters, setFilters] = useState({
-    status: '',
-    priority: '',
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [filters, setFilters] = useState<TaskFiltersType>({
+    status: undefined,
+    priority: undefined,
     search: '',
   });
 
@@ -40,12 +41,12 @@ const Tasks = () => {
     setIsModalOpen(true);
   };
 
-  const handleEditTask = (task) => {
+  const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setIsModalOpen(true);
   };
 
-  const handleDeleteTask = async (taskId) => {
+  const handleDeleteTask = async (taskId: string) => {
     if (!window.confirm('Tem certeza que deseja excluir esta tarefa?')) {
       return;
     }
@@ -60,7 +61,7 @@ const Tasks = () => {
     }
   };
 
-  const handleSaveTask = async (taskData) => {
+  const handleSaveTask = async (taskData: Partial<Task>) => {
     try {
       if (editingTask) {
         await taskService.updateTask(editingTask.id, taskData);
@@ -77,7 +78,7 @@ const Tasks = () => {
     }
   };
 
-  const handleFilterChange = (newFilters) => {
+  const handleFilterChange = (newFilters: Partial<TaskFiltersType>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 

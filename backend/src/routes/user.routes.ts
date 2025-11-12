@@ -1,7 +1,7 @@
-const express = require('express');
-const { body } = require('express-validator');
-const { updateProfile, changePassword } = require('../controllers/user.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+import express from 'express';
+import { body } from 'express-validator';
+import { updateProfile, changePassword } from '../controllers/user.controller';
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -38,4 +38,4 @@ const changePasswordValidation = [
 router.put('/profile', updateProfileValidation, updateProfile);
 router.put('/password', changePasswordValidation, changePassword);
 
-module.exports = router;
+export default router;

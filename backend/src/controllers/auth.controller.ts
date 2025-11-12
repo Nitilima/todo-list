@@ -1,25 +1,28 @@
-const jwt = require('jsonwebtoken');
-const prisma = require('../config/prisma');
-const { hashPassword, comparePassword } = require('../utils/hashPassword');
-const { validationResult } = require('express-validator');
+import { Response } from 'express';
+import jwt from 'jsonwebtoken';
+import prisma from '../config/prisma';
+import { hashPassword, comparePassword } from '../utils/hashPassword';
+import { validationResult } from 'express-validator';
+import { AuthRequest } from '../types';
 
 // Generate JWT token
-const generateToken = (userId) => {
+const generateToken = (userId: string): string => {
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    process.env.JWT_SECRET as string,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as jwt.SignOptions
   );
 };
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
-const register = async (req, res) => {
+export const register = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const { name, email, password } = req.body;
@@ -30,7 +33,8 @@ const register = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      res.status(400).json({ message: 'User already exists with this email' });
+      return;
     }
 
     // Hash password
@@ -70,11 +74,12 @@ const register = async (req, res) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-const login = async (req, res) => {
+export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const { email, password } = req.body;
@@ -85,18 +90,21 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Invalid credentials' });
+      return;
     }
 
     // Check if user is active
     if (!user.isActive) {
-      return res.status(401).json({ message: 'Account is inactive' });
+      res.status(401).json({ message: 'Account is inactive' });
+      return;
     }
 
     // Compare password
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Invalid credentials' });
+      return;
     }
 
     // Generate token
@@ -119,7 +127,7 @@ const login = async (req, res) => {
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
-const getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -134,7 +142,8 @@ const getCurrentUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     res.json({ user });
@@ -142,10 +151,4 @@ const getCurrentUser = async (req, res) => {
     console.error('Get current user error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-};
-
-module.exports = {
-  register,
-  login,
-  getCurrentUser
 };

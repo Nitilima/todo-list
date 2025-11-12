@@ -1,14 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LayoutDashboard, CheckSquare, User, LogOut, Menu, X } from 'lucide-react';
 
-const Layout = ({ children }) => {
+interface LayoutProps {
+  children: ReactNode;
+}
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+}
+
+const Layout = ({ children }: LayoutProps) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
     { name: 'Perfil', href: '/profile', icon: User },

@@ -1,15 +1,18 @@
-const prisma = require('../config/prisma');
-const { hashPassword, comparePassword } = require('../utils/hashPassword');
-const { validationResult } = require('express-validator');
+import { Response } from 'express';
+import prisma from '../config/prisma';
+import { hashPassword, comparePassword } from '../utils/hashPassword';
+import { validationResult } from 'express-validator';
+import { AuthRequest } from '../types';
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const { name, email } = req.body;
@@ -18,7 +21,8 @@ const updateProfile = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // Check if email is being changed and already exists
@@ -27,11 +31,12 @@ const updateProfile = async (req, res) => {
         where: { email }
       });
       if (existingUser) {
-        return res.status(400).json({ message: 'Email already in use' });
+        res.status(400).json({ message: 'Email already in use' });
+        return;
       }
     }
 
-    const updateData = {};
+    const updateData: any = {};
     if (name) updateData.name = name;
     if (email) updateData.email = email;
 
@@ -61,11 +66,12 @@ const updateProfile = async (req, res) => {
 // @desc    Change password
 // @route   PUT /api/users/password
 // @access  Private
-const changePassword = async (req, res) => {
+export const changePassword = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      res.status(400).json({ errors: errors.array() });
+      return;
     }
 
     const { currentPassword, newPassword } = req.body;
@@ -74,13 +80,15 @@ const changePassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // Verify current password
     const isMatch = await comparePassword(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
+      res.status(400).json({ message: 'Current password is incorrect' });
+      return;
     }
 
     // Hash and update password
@@ -95,9 +103,4 @@ const changePassword = async (req, res) => {
     console.error('Change password error:', error);
     res.status(500).json({ message: 'Server error while changing password' });
   }
-};
-
-module.exports = {
-  updateProfile,
-  changePassword
 };

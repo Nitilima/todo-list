@@ -1,14 +1,14 @@
-const express = require('express');
-const { body } = require('express-validator');
-const {
+import express from 'express';
+import { body } from 'express-validator';
+import {
   getTasks,
   getTask,
   createTask,
   updateTask,
   deleteTask,
   getTaskStats
-} = require('../controllers/task.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+} from '../controllers/task.controller';
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -48,4 +48,4 @@ router.post('/', taskValidation, createTask);
 router.put('/:id', taskValidation, updateTask);
 router.delete('/:id', deleteTask);
 
-module.exports = router;
+export default router;

@@ -5,28 +5,39 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import { User, Lock } from 'lucide-react';
 
-const Profile = () => {
+interface ProfileData {
+  name: string;
+  email: string;
+}
+
+interface PasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+const Profile: React.FC = () => {
   const { user, updateUser } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [profileData, setProfileData] = useState({
+  const [loading, setLoading] = useState<boolean>(false);
+  const [profileData, setProfileData] = useState<ProfileData>({
     name: user?.name || '',
     email: user?.email || '',
   });
-  const [passwordData, setPasswordData] = useState({
+  const [passwordData, setPasswordData] = useState<PasswordData>({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  const handleProfileChange = (e) => {
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
   };
 
-  const handleUpdateProfile = async (e) => {
+  const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
 
@@ -34,7 +45,7 @@ const Profile = () => {
       const response = await api.put('/users/profile', profileData);
       updateUser(response.data.user);
       toast.success('Perfil atualizado com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
       toast.error(error.response?.data?.message || 'Erro ao atualizar perfil');
     } finally {
@@ -42,7 +53,7 @@ const Profile = () => {
     }
   };
 
-  const handleChangePassword = async (e) => {
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -68,7 +79,7 @@ const Profile = () => {
         newPassword: '',
         confirmPassword: '',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error changing password:', error);
       toast.error(error.response?.data?.message || 'Erro ao alterar senha');
     } finally {

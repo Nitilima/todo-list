@@ -1,6 +1,14 @@
 import TaskCard from './TaskCard';
+import { Task } from '../../types';
 
-const TaskList = ({ tasks, onEdit, onDelete, onStatusChange }) => {
+interface TaskListProps {
+  tasks: Task[];
+  onEdit: (task: Task) => void;
+  onDelete: (taskId: string) => void;
+  onStatusChange: () => void;
+}
+
+const TaskList = ({ tasks, onEdit, onDelete, onStatusChange }: TaskListProps) => {
   if (tasks.length === 0) {
     return (
       <div className="card text-center py-12">

@@ -1,9 +1,20 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { User } from '../types';
 
-const AuthContext = createContext({});
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
+  updateUser: (user: User) => void;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -13,8 +24,12 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -36,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, user } = response.data;
@@ -45,14 +60,14 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       toast.success('Login realizado com sucesso!');
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       const message = error.response?.data?.message || 'Erro ao fazer login';
       toast.error(message);
       throw error;
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name: string, email: string, password: string) => {
     try {
       const response = await api.post('/auth/register', { name, email, password });
       const { token, user } = response.data;
@@ -61,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       toast.success('Cadastro realizado com sucesso!');
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       const message = error.response?.data?.message || 'Erro ao fazer cadastro';
       toast.error(message);
       throw error;
@@ -75,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
-  const updateUser = (updatedUser) => {
+  const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
   };
 

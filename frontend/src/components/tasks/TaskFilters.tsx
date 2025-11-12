@@ -1,16 +1,22 @@
 import { Search, Filter } from 'lucide-react';
+import { TaskFilters as TaskFiltersType, TaskStatus, TaskPriority } from '../../types';
 
-const TaskFilters = ({ filters, onFilterChange }) => {
-  const handleSearchChange = (e) => {
+interface TaskFiltersProps {
+  filters: TaskFiltersType;
+  onFilterChange: (filters: Partial<TaskFiltersType>) => void;
+}
+
+const TaskFilters = ({ filters, onFilterChange }: TaskFiltersProps) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({ search: e.target.value });
   };
 
-  const handleStatusChange = (e) => {
-    onFilterChange({ status: e.target.value });
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onFilterChange({ status: (e.target.value || undefined) as TaskStatus | undefined });
   };
 
-  const handlePriorityChange = (e) => {
-    onFilterChange({ priority: e.target.value });
+  const handlePriorityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onFilterChange({ priority: (e.target.value || undefined) as TaskPriority | undefined });
   };
 
   return (
@@ -30,7 +36,7 @@ const TaskFilters = ({ filters, onFilterChange }) => {
             <input
               type="text"
               id="search"
-              value={filters.search}
+              value={filters.search || ''}
               onChange={handleSearchChange}
               className="input pl-10"
               placeholder="Buscar tarefas..."
@@ -44,7 +50,7 @@ const TaskFilters = ({ filters, onFilterChange }) => {
           </label>
           <select
             id="status"
-            value={filters.status}
+            value={filters.status || ''}
             onChange={handleStatusChange}
             className="input"
           >
@@ -61,7 +67,7 @@ const TaskFilters = ({ filters, onFilterChange }) => {
           </label>
           <select
             id="priority"
-            value={filters.priority}
+            value={filters.priority || ''}
             onChange={handlePriorityChange}
             className="input"
           >

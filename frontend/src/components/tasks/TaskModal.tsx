@@ -1,8 +1,24 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { Task, TaskStatus, TaskPriority } from '../../types';
 
-const TaskModal = ({ isOpen, onClose, onSave, task }) => {
-  const [formData, setFormData] = useState({
+interface TaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (taskData: Partial<Task>) => void;
+  task: Task | null;
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate: string;
+}
+
+const TaskModal = ({ isOpen, onClose, onSave, task }: TaskModalProps) => {
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
     status: 'pending',
@@ -30,11 +46,11 @@ const TaskModal = ({ isOpen, onClose, onSave, task }) => {
     }
   }, [task, isOpen]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSave(formData);
   };

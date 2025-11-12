@@ -2,23 +2,31 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/common/Layout';
 import { taskService } from '../services/taskService';
-import { CheckCircle, Clock, AlertCircle, TrendingUp, ArrowRight } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, TrendingUp, ArrowRight, LucideIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Task, TaskStats } from '../types';
 
-const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [recentTasks, setRecentTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+interface StatCard {
+  title: string;
+  value: number;
+  icon: LucideIcon;
+  color: string;
+}
+
+const Dashboard: React.FC = () => {
+  const [stats, setStats] = useState<TaskStats | null>(null);
+  const [recentTasks, setRecentTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (): Promise<void> => {
     try {
       const [statsData, tasksData] = await Promise.all([
         taskService.getStats(),
-        taskService.getTasks({ sortBy: 'createdAt', order: 'DESC' }),
+        taskService.getTasks({ sortBy: 'createdAt', order: 'desc' }),
       ]);
 
       setStats(statsData);
@@ -41,7 +49,7 @@ const Dashboard = () => {
     );
   }
 
-  const statCards = [
+  const statCards: StatCard[] = [
     {
       title: 'Total de Tarefas',
       value: stats?.totalTasks || 0,

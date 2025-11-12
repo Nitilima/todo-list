@@ -1,14 +1,14 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const prisma = require('./config/prisma');
+import 'dotenv/config';
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import prisma from './config/prisma';
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const taskRoutes = require('./routes/task.routes');
-const userRoutes = require('./routes/user.routes');
+import authRoutes from './routes/auth.routes';
+import taskRoutes from './routes/task.routes';
+import userRoutes from './routes/user.routes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,12 +29,12 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
@@ -43,12 +43,12 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
 // Database connection and server start
-const startServer = async () => {
+const startServer = async (): Promise<void> => {
   try {
     // Test database connection
     await prisma.$connect();
@@ -82,4 +82,4 @@ process.on('SIGINT', async () => {
 
 startServer();
 
-module.exports = app;
+export default app;

@@ -3,9 +3,17 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar, Edit, Trash2, Clock } from 'lucide-react';
 import { taskService } from '../../services/taskService';
 import toast from 'react-hot-toast';
+import { Task, TaskStatus, TaskPriority } from '../../types';
 
-const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
-  const handleStatusChange = async (newStatus) => {
+interface TaskCardProps {
+  task: Task;
+  onEdit: (task: Task) => void;
+  onDelete: (taskId: string) => void;
+  onStatusChange: () => void;
+}
+
+const TaskCard = ({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) => {
+  const handleStatusChange = async (newStatus: TaskStatus) => {
     try {
       await taskService.updateTask(task.id, { ...task, status: newStatus });
       toast.success('Status atualizado!');
@@ -18,25 +26,19 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
 
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
 
-  const statusColors = {
+  const statusColors: Record<TaskStatus, string> = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     in_progress: 'bg-blue-100 text-blue-800 border-blue-200',
     completed: 'bg-green-100 text-green-800 border-green-200',
   };
 
-  const priorityColors = {
+  const priorityColors: Record<TaskPriority, string> = {
     low: 'bg-gray-100 text-gray-800',
     medium: 'bg-yellow-100 text-yellow-800',
     high: 'bg-red-100 text-red-800',
   };
 
-  const statusLabels = {
-    pending: 'Pendente',
-    in_progress: 'Em Progresso',
-    completed: 'Concluída',
-  };
-
-  const priorityLabels = {
+  const priorityLabels: Record<TaskPriority, string> = {
     low: 'Baixa',
     medium: 'Média',
     high: 'Alta',
@@ -56,7 +58,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusChange }) => {
       <div className="flex flex-wrap gap-2 mb-4">
         <select
           value={task.status}
-          onChange={(e) => handleStatusChange(e.target.value)}
+          onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
           className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[task.status]} cursor-pointer`}
         >
           <option value="pending">Pendente</option>
